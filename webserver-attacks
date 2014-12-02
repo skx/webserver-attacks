@@ -1,0 +1,212 @@
+#!/usr/bin/perl -w -I.
+#
+# Overview
+# --------
+#
+# This is a simple proof of concept which will allow a series of JSON-rules
+# to identify malicious requests from webserver logs.
+#
+# In the event of a "hit" the remote IP will be output for each malicious
+# request.
+#
+#
+# Usage
+# -----
+#      ./webserver-attacks logfile1.log logfile2.log
+#
+#  For more details add "--verbose".
+#
+#
+#
+# Rules
+# -----
+#
+# Rules have a "regexp" to match, a header to match against, such as the
+# referer, the request-method, the http-version, etc, and a description
+#
+#
+# Steve
+# --
+#
+
+
+
+use strict;
+use warnings;
+
+use Apache::Log::Parser;
+use Getopt::Long;
+use JSON;
+
+
+
+
+#
+#  Get configuration options
+#
+my %CONFIG;
+exit if ( !GetOptions( "verbose", \$CONFIG{ 'verbose' } ) );
+
+
+#
+#  The rules will be populated from the JSON files which are located
+# beneath /etc/webserver.attacks.d, or ./webserver.attacks.d.
+#
+my @rules;
+
+
+#
+#  Load all the rules
+#
+loadRules();
+
+if ( !scalar @rules )
+{
+    print "Failed to load rules - Please investigate\n";
+    exit(1);
+}
+
+#
+# The user will provide the logfiles.
+#
+if ( !scalar @ARGV )
+{
+    print "Usage: $0 logfile1 logfile2 .. logfileN\n";
+    exit(1);
+}
+
+#
+#  Process each named file.
+#
+foreach my $file (@ARGV)
+{
+    processLog($file);
+}
+
+exit 0;
+
+
+=begin doc
+
+Load the rule-files
+
+=end doc
+
+=cut
+
+sub loadRules
+{
+    foreach my $dir (qw! /etc/webserver-attacks.d/ ./webserver-attacks.d/ !)
+    {
+        foreach my $rule ( sort( glob( $dir . "/*" ) ) )
+        {
+            if ( ( -e $rule ) && ( !-d $rule ) )
+            {
+                my $content;
+
+                open( my $handle, "<", $rule ) or
+                  die "Failed to open rule $rule - $!";
+                while ( my $line = <$handle> )
+                {
+                    $content .= $line;
+                }
+                close($handle);
+
+                my $obj = decode_json($content);
+
+                if (@$obj)
+                {
+                    push( @rules, @$obj );
+                }
+            }
+        }
+    }
+}
+
+
+
+=begin doc
+
+Process the specified logfiles looking for attacks.
+
+=end doc
+
+=cut
+
+sub processLog
+{
+    my ($file) = (@_);
+
+    my %seen;
+
+
+    my $parser = Apache::Log::Parser->new( fast => 1 );
+
+    open( my $handle, "<", $file ) or
+      die "Failed to open $file - $!";
+
+    while ( my $line = <$handle> )
+    {
+
+        #
+        #  Parse the line
+        #
+        my $data = $parser->parse($line);
+
+        #
+        #  Have we seen this IP as a remote attacker already?
+        #
+        next if ( $data->{ 'rhost' } && $seen{ $data->{ 'rhost' } } );
+
+
+        #
+        # For each rule
+        #
+        foreach my $rule (@rules)
+        {
+            my $header = $rule->{ 'header' };
+            my $regexp = $rule->{ 'value' };
+            my $desc   = $rule->{ 'description' };
+
+            #
+            #  Get the value of the given header from this request
+            #
+            my $value = $data->{ $header } || next;
+
+            #
+            #  Do we match?
+            #
+            if ( $value =~ /$regexp/i )
+            {
+                if ( $CONFIG{ 'verbose' } )
+                {
+
+                    # show the matching values.
+                    print "$desc - Regexp:'$regexp' Field:'$header' INPUT ";
+
+                    # show each parsed field/value
+                    foreach my $key ( sort keys %$data )
+                    {
+                        print $key . ":" . $data->{ $key } . " ";
+                    }
+
+                    # newline.
+                    print "\n";
+                }
+
+                # show the IP.
+                print $data->{ 'rhost' } . "\n";
+
+                # prevent rematching this line.
+                $seen{ $data->{ 'rhost' } } += 1;
+                next;
+            }
+        }
+    }
+
+    close($handle);
+}
+
+
+
+
