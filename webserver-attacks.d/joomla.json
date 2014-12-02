@@ -1,0 +1,3 @@
+[
+ {"value":"index.php\\?option=com_tag&.*union.*select.*jos_users","description":"Joomla tags SQL injection","header":"path"}
+]
