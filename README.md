@@ -1,8 +1,8 @@
-Source Repository:
-    https://github.com/skx/webserver-attacks/
+* Source Repository:
+    * https://github.com/skx/webserver-attacks/
 
-Mirror:
-    http://git.steve.org.uk/skx/webserver-attacks
+* Mirror:
+    * http://git.steve.org.uk/skx/webserver-attacks
 
 
 
