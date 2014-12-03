@@ -1,0 +1,10 @@
+[
+ {"description":"possible \"UPDATE SET\" SQL-injection statement",
+  "path":"\\?.*[uU][pP][dD][aA][tT][eE].*[sS][eE][tT]"},
+ {"description":"possible \"SELECT FROM\" SQL-injection statement",
+  "path":"\\?.*[sS][eE][lL][eE][cC][tT].*[fF][rR][oO][mM]"},
+ {"description":"possible \"INSERT VALUES\" SQL-injection statement",
+  "path":"\\?.*[iI][nN][sS][eE][rR][tT].*[vV][aA][lL][uU][eE][sS]"},
+ {"description":"possible \"UNION SELECT\" SQL-injection statement",
+  "path":"\\?.*[uU][nN][iI][oO][nN].*[sS][eE][lL][eE][cC][tT]"}
+]

@@ -1,0 +1,8 @@
+[
+ {"description":"Looking for revision control files: CVS",
+  "path":"/CVS/"},
+ {"description":"Looking for revision control files: mercurial",
+  "path":"/\\.hg/"},
+ {"description":"Looking for revision control files: git",
+  "path":"/\\.git/"}
+]
