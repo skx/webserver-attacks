@@ -1,0 +1,16 @@
+[
+ {"description":"Drupal authentication failure",
+  "method":"POST",
+  "status":"200",
+  "path":"/user$"},
+ {"description":"Drupal authentication failure",
+  "method":"POST",
+  "status":"200",
+  "path":"\\?.*q=user"},
+ {"description":"Drupal user creation failure",
+  "status":"403",
+  "path":"/user/register"},
+ {"description":"Drupal user creation failure",
+  "status":"403",
+  "path":"\\?.*q=user/register"}
+]

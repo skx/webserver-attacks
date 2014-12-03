@@ -1,0 +1,10 @@
+[
+ {"description":"WordPress authentication failure",
+  "method":"POST",
+  "status":"200",
+  "path":"/wp-login\\.php$"},
+ {"description":"WordPress authentication failure",
+  "method":"POST",
+  "status":"200",
+  "path":"/wp-admin\\.php$"}
+]
