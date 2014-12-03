@@ -167,16 +167,17 @@ sub processLog
         #
         my $data = $parser->parse($line);
 
-        #
-        #  Did we either fail to parse an IP, or have we seen this IP already?
-        #
-        next if ( ! $data->{ 'rhost' } || $seen{ $data->{ 'rhost' } } );
 
         #
         # For each rule we have
         #
         foreach my $rule (@rules)
         {
+
+            #
+            #  Did we either fail to parse an IP, or see this IP already?
+            #
+            next if ( ! $data->{ 'rhost' } || $seen{ $data->{ 'rhost' } } );
 
             #
             #  We assume each rule matches each line
