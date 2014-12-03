@@ -1,4 +1,4 @@
 [
- {"value":"^\\(\\)","description":"Shellshock against user-agent","header":"agent"},
- {"value":"^\\(\\)","description":"Shellshock against referer","header":"referer"}
+ {"agent":"^\\(\\)","description":"Shellshock against user-agent"},
+ {"referer":"^\\(\\)","description":"Shellshock against referer"}
 ]

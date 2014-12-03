@@ -25,8 +25,8 @@ Simply run the tool against a logfile, or set of logfiles:
 For additional detail you can add the `--verbose` flag:
 
      $ ./webserver-attacks *.log --verbose
-     Shellshock against user-agent - Regexp:'^\(\)' Field:'agent' INPUT agent:() { :;}; /bin/bash -c \ bytes:3941 date:02/Dec/2014 datetime:02/Dec/2014:13:02:49 +0000 logname:kvm-hosting.org method:GET path:/ proto:HTTP/1.1 referer:- request:GET / HTTP/1.1 rhost:176.102.38.75 status:200 time:13:02:49 timezone:+0000 user:-
-     176.102.38.75
+     Shellshock against user-agent - INPUT agent:() { :;}; /bin/bash -c \ bytes:2325 date:02/Dec/2014 datetime:02/Dec/2014:11:50:03 +0000 logname:blog.steve.org.uk method:GET path:/cgi-bin/dbs.cgi proto:HTTP/1.1 referer:- request:GET /cgi-bin/dbs.cgi HTTP/1.1 rhost:92.242.4.130 status:404 time:11:50:03 timezone:+0000 user:-
+     92.242.4.130
 
 
 
@@ -38,15 +38,11 @@ Rules are read from the following two directories, if present:
 * `/etc/webserver-attacks.d/`
 * `./webserver-attacks.d/`
 
-Rules contain three things:
+Rules contain a descriptive piece of text, then a series of regular expressions to match against particular headers.  For a rule to match each component of that rule must match.
 
-* A regular expression to match.
-* A description to output when a match is made, and the `--verbose` flag is in-use.
-* The field to match against.  (Where a field is a component of the logfile, such as `referer`, `agent`, etc.)
+For example you might wish to report against HTTP POST requests to missing PHP scripts, and the followign rule would do that:
 
-
-Rules are JSON-encoded, and should make sense.
-
+     {"method":"POST","status":"404","path":"\\.php","description":"POST to missing PHP"}
 
 
 

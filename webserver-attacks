@@ -3,26 +3,40 @@
 # Overview
 # --------
 #
-# This is a simple proof of concept which will allow a series of JSON-rules
-# to identify malicious requests from webserver logs.
+# This is a simple proof of concept which will allow a series of rules,
+# provided as JSON-encoded objects, to identify malicious requests from
+# webserver logs.
 #
 # In the event of a "hit" the remote IP will be output for each malicious
-# request.
+# request.  Regardless of the number of hits an IP will only be output once
+# for each run.
 #
 #
 # Usage
 # -----
-#      ./webserver-attacks logfile1.log logfile2.log
+#
+#  ./webserver-attacks logfile1.log logfile2.log
 #
 #  For more details add "--verbose".
 #
+#  TODO:  Handle installation.
 #
 #
 # Rules
 # -----
 #
-# Rules have a "regexp" to match, a header to match against, such as the
-# referer, the request-method, the http-version, etc, and a description
+# Each rule consists of a regular expression to be matched against a part
+# of the request.  For example:
+#
+#  * you might match "index.php" against the "path".
+#
+#  * You might match 404 against the "status".
+#
+# Each rule can consist of multiple header+regexp pairs, and for a match to
+# be made each one must match.  As an example you might wish to find POST
+# requests made to missing PHP files via this rule:
+#
+#    code:404 path:\.php method:POST
 #
 #
 # Steve
@@ -154,35 +168,75 @@ sub processLog
         my $data = $parser->parse($line);
 
         #
-        #  Have we seen this IP as a remote attacker already?
+        #  Did we either fail to parse an IP, or have we seen this IP already?
         #
-        next if ( $data->{ 'rhost' } && $seen{ $data->{ 'rhost' } } );
-
+        next if ( ! $data->{ 'rhost' } || $seen{ $data->{ 'rhost' } } );
 
         #
-        # For each rule
+        # For each rule we have
         #
         foreach my $rule (@rules)
         {
-            my $header = $rule->{ 'header' };
-            my $regexp = $rule->{ 'value' };
-            my $desc   = $rule->{ 'description' };
 
             #
-            #  Get the value of the given header from this request
+            #  We assume each rule matches each line
             #
-            my $value = $data->{ $header } || next;
+            my $match = 1;
 
             #
-            #  Do we match?
+            #  The rules are hashes - with an extra "description"
+            # key which is ignored.
             #
-            if ( $value =~ /$regexp/i )
+            foreach my $key ( keys %$rule )
+            {
+
+                #
+                #  Skip the description.
+                #
+                next if ( $key eq "description" );
+
+                #
+                #  Skip if we've already ruled this ruleset out
+                #
+                next if ( !$match );
+
+
+                #
+                #  OK so we have the header and regexp we're goign to match from
+                # the rule.
+                #
+                my $header = $key;
+                my $regexp = $rule->{ $key };
+
+                #
+                #  Get the value of the given header from this request
+                #
+                my $value = $data->{ $header } || next;
+
+                #
+                #  Do we match?
+                #
+                if ( $value !~ /$regexp/i )
+                {
+                    $match = 0;
+                }
+            }
+
+
+            #
+            #  As a result of performing *all* the matches on this rule
+            # we have either matched, or not.
+            #
+            #  If we matched then report that.
+            #
+            if ($match)
             {
                 if ( $CONFIG{ 'verbose' } )
                 {
+                    my $desc = $rule->{ 'description' } || "No description";
 
                     # show the matching values.
-                    print "$desc - Regexp:'$regexp' Field:'$header' INPUT ";
+                    print "$desc - INPUT ";
 
                     # show each parsed field/value
                     foreach my $key ( sort keys %$data )
@@ -194,12 +248,11 @@ sub processLog
                     print "\n";
                 }
 
+                # prevent rematching this line.
+                $seen{ $data->{ 'rhost' } } += 1 if ( $data->{'rhost'} );
+
                 # show the IP.
                 print $data->{ 'rhost' } . "\n";
-
-                # prevent rematching this line.
-                $seen{ $data->{ 'rhost' } } += 1;
-                next;
             }
         }
     }
