@@ -1,3 +1,4 @@
 [
- {"method":"POST","status":"404","path":"\\.php","description":"POST to missing PHP"}
+ {"method":"POST","status":"404","path":"\\.php","description":"POST to missing PHP"},
+ {"method":"POST","status":"404","path":"/cgi-bin/php","description":"POST to missing CGI-BIN version of PHP"}
 ]
