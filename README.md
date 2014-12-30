@@ -40,7 +40,7 @@ Rules are read from the following two directories, if present:
 
 Rules contain a descriptive piece of text, then a series of regular expressions to match against particular headers.  For a rule to match each component of that rule must match.
 
-For example you might wish to report against HTTP POST requests to missing PHP scripts, and the followign rule would do that:
+For example you might wish to report against HTTP POST requests to missing PHP scripts, and the following rule would do that:
 
      {"method":"POST","status":"404","path":"\\.php","description":"POST to missing PHP"}
 
